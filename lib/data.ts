@@ -5,6 +5,7 @@ import type {
   DashboardMetrics,
   InventoryItem,
   OrderItem,
+  OrderHistory,
   OrderWithRelations,
   SearchResult
 } from "@/lib/types";
@@ -69,13 +70,14 @@ export async function getRecentOrders(limit = 8) {
     .order("created_at", { ascending: false })
     .limit(limit);
 
-  return ((data ?? []) as unknown as OrderWithRelations[]) ?? [];
+  return ((((data ?? []) as unknown as OrderWithRelations[]) ?? []).filter((order) => !order.deleted_at));
 }
 
 export async function getCustomers(params: {
   page?: number;
   search?: string;
   department?: string;
+  year?: string;
   selectedCustomerId?: string;
 }) {
   const { supabase } = await requireAdminUser();
@@ -95,6 +97,10 @@ export async function getCustomers(params: {
     query = query.eq("department", params.department);
   }
 
+  if (params.year && params.year !== "ALL") {
+    query = query.eq("year", params.year);
+  }
+
   const { data, count } = await query.range(pagination.from, pagination.to);
 
   let history: OrderWithRelations[] = [];
@@ -106,7 +112,7 @@ export async function getCustomers(params: {
       .order("created_at", { ascending: false })
       .limit(10);
 
-    history = (historyData ?? []) as unknown as OrderWithRelations[];
+    history = (((historyData ?? []) as unknown as OrderWithRelations[]) ?? []).filter((order) => !order.deleted_at);
   }
 
   return {
@@ -120,6 +126,7 @@ export async function getOrders(params: {
   page?: number;
   search?: string;
   paymentStatus?: string;
+  includeDeleted?: boolean;
 }) {
   const { supabase } = await requireAdminUser();
   const pagination = getPagination(params.page ?? 1, 10);
@@ -131,13 +138,18 @@ export async function getOrders(params: {
 
   let filtered = ((data ?? []) as unknown as OrderWithRelations[]) ?? [];
 
+  if (!params.includeDeleted) {
+    filtered = filtered.filter((order) => !order.deleted_at);
+  }
+
   if (params.search?.trim()) {
     const search = params.search.trim().toLowerCase();
     filtered = filtered.filter(
       (order) =>
         order.id.toLowerCase().includes(search) ||
         order.customers.name.toLowerCase().includes(search) ||
-        order.customers.department.toLowerCase().includes(search)
+        order.customers.department.toLowerCase().includes(search) ||
+        order.order_items.some((item) => item.service_type.toLowerCase().includes(search))
     );
   }
 
@@ -155,6 +167,14 @@ export async function getOrders(params: {
 
 export async function getUnpaidOrders(page = 1) {
   return getOrders({ page, paymentStatus: "pending" });
+}
+
+export async function getUnpaidOrdersWithSearch(params: { page?: number; search?: string }) {
+  return getOrders({
+    page: params.page,
+    search: params.search,
+    paymentStatus: "pending"
+  });
 }
 
 export async function getInventory() {
@@ -204,6 +224,64 @@ export async function getReportsData() {
       total,
       label: formatCurrency(total)
     }))
+  };
+}
+
+export async function getProfileData() {
+  const { supabase, user } = await requireAdminUser();
+
+  const [
+    { count: totalCustomers },
+    { data: customers },
+    { data: orders },
+    historyResult
+  ] = await Promise.all([
+    supabase.from("customers").select("id", { count: "exact", head: true }),
+    supabase.from("customers").select("*").order("created_at", { ascending: false }),
+    supabase.from("orders").select("*, customers(*), order_items(*), payments(*)").order("created_at", { ascending: false }),
+    supabase.from("order_history").select("*").order("created_at", { ascending: false }).limit(50)
+  ]);
+
+  const normalizedOrders = (((orders ?? []) as unknown as OrderWithRelations[]) ?? []).filter((order) => !order.deleted_at);
+  const unpaidOrders = normalizedOrders.filter((order) => order.payment_status === "pending").length;
+  const history = historyResult.error ? [] : ((historyResult.data ?? []) as OrderHistory[]);
+
+  return {
+    user: {
+      email: user.email ?? "admin@xprints.local",
+      lastSignInAt: user.last_sign_in_at ?? null
+    },
+    stats: {
+      totalCustomers: totalCustomers ?? 0,
+      totalOrders: normalizedOrders.length,
+      unpaidOrders
+    },
+    customers: (customers ?? []) as Customer[],
+    orders: normalizedOrders,
+    history
+  };
+}
+
+export async function getOrderHistory(orderId: string) {
+  const { supabase } = await requireAdminUser();
+  const { data, error } = await supabase.from("order_history").select("*").eq("order_id", orderId).order("created_at", { ascending: false });
+  if (error) {
+    return [];
+  }
+
+  return (data ?? []) as OrderHistory[];
+}
+
+export async function getOrderForEdit(orderId: string) {
+  const { supabase } = await requireAdminUser();
+  const [{ data: orderData }, { data: historyData }] = await Promise.all([
+    supabase.from("orders").select("*, customers(*), order_items(*), payments(*)").eq("id", orderId).single(),
+    supabase.from("order_history").select("*").eq("order_id", orderId).order("created_at", { ascending: false })
+  ]);
+
+  return {
+    order: (orderData ?? null) as OrderWithRelations | null,
+    history: (historyData ?? []) as OrderHistory[]
   };
 }
 

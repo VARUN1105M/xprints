@@ -43,6 +43,16 @@ export const createOrderSchema = z.object({
   items: z.array(orderItemSchema).min(1)
 });
 
+export const updateOrderSchema = createOrderSchema.extend({
+  orderId: z.string().uuid(),
+  reason: z.string().min(3)
+});
+
+export const deleteOrderSchema = z.object({
+  orderId: z.string().uuid(),
+  reason: z.string().min(3)
+});
+
 export const paymentUpdateSchema = z.object({
   orderId: z.string().uuid(),
   amount: z.number().min(0),

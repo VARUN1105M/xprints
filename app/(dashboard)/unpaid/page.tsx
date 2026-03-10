@@ -1,25 +1,32 @@
-import { getUnpaidOrders } from "@/lib/data";
+import { getUnpaidOrdersWithSearch } from "@/lib/data";
 import { getTotalPages } from "@/lib/pagination";
 import { formatCurrency } from "@/lib/utils";
 import { MarkPaymentForm } from "@/components/orders/mark-payment-form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Pagination } from "@/components/ui/pagination";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export default async function UnpaidPage({
   searchParams
 }: {
-  searchParams?: { page?: string };
+  searchParams?: { page?: string; q?: string };
 }) {
   const page = Number(searchParams?.page ?? "1");
-  const { orders, total } = await getUnpaidOrders(page);
+  const search = searchParams?.q ?? "";
+  const { orders, total } = await getUnpaidOrdersWithSearch({ page, search });
   const totalPages = getTotalPages(total, 10);
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Unpaid jobs</CardTitle>
-        <CardDescription>Track pending orders and capture payment as it comes in.</CardDescription>
+      <CardHeader className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <CardTitle>Unpaid jobs</CardTitle>
+          <CardDescription>Track pending orders, search quickly, and capture payment as it comes in.</CardDescription>
+        </div>
+        <form>
+          <Input name="q" placeholder="Search customer, service, department, order id" defaultValue={search} />
+        </form>
       </CardHeader>
       <CardContent className="space-y-6">
         {orders.length ? (
@@ -77,7 +84,7 @@ export default async function UnpaidPage({
             There are no unpaid jobs right now. New unpaid orders will appear here automatically.
           </div>
         )}
-        <Pagination basePath="/unpaid" page={page} totalPages={totalPages} />
+        <Pagination basePath="/unpaid" page={page} totalPages={totalPages} query={{ q: search }} />
       </CardContent>
     </Card>
   );

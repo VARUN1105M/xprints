@@ -54,35 +54,33 @@ export function ConnectionStatus() {
   const config =
     state.status === "connected"
       ? {
-          label: "Live DB",
-          tone: "bg-foreground text-background",
+          label: "Connected",
+          tone: "bg-green-500",
           dot: "bg-green-500"
         }
       : state.status === "auth_required"
         ? {
-            label: "Auth required",
-            tone: "bg-background text-foreground border border-border",
+            label: "Connecting",
+            tone: "bg-yellow-500",
             dot: "bg-yellow-500"
           }
         : state.status === "db_issue"
           ? {
-              label: "DB issue",
-              tone: "bg-background text-foreground border border-border",
+              label: "Not connected",
+              tone: "bg-red-500",
               dot: "bg-red-500"
             }
           : {
-              label: "Checking",
-              tone: "bg-background text-muted-foreground border border-border",
+              label: "Connecting",
+              tone: "bg-yellow-500",
               dot: "bg-yellow-500"
             };
 
   return (
-    <div
+    <span
       title={state.message ?? config.label}
-      className={`inline-flex items-center gap-2 rounded-full px-3 py-2 text-xs font-medium ${config.tone}`}
-    >
-      <span className={`h-2 w-2 rounded-full ${config.dot}`} />
-      {config.label}
-    </div>
+      aria-label={config.label}
+      className={`inline-flex h-3 w-3 rounded-full ${config.tone} shadow-[0_0_0_3px_rgba(15,23,42,0.08)]`}
+    />
   );
 }

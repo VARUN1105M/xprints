@@ -30,6 +30,9 @@ export type Order = {
   total_price: number;
   payment_status: PaymentStatus;
   created_at: string;
+  updated_at: string | null;
+  deleted_at: string | null;
+  deleted_reason: string | null;
 };
 
 export type OrderItem = {
@@ -78,6 +81,15 @@ export type OrderWithRelations = Order & {
   payments: Payment[];
 };
 
+export type OrderHistory = {
+  id: string;
+  order_id: string;
+  action: "created" | "edited" | "deleted" | "payment_updated";
+  reason: string | null;
+  snapshot: Json;
+  created_at: string;
+};
+
 export type DashboardMetrics = {
   todaysRevenue: number;
   ordersToday: number;
@@ -119,11 +131,17 @@ export type Database = {
           customer_id: string;
           total_price: number;
           payment_status: PaymentStatus;
+          updated_at?: string | null;
+          deleted_at?: string | null;
+          deleted_reason?: string | null;
         };
         Update: {
           customer_id?: string;
           total_price?: number;
           payment_status?: PaymentStatus;
+          updated_at?: string | null;
+          deleted_at?: string | null;
+          deleted_reason?: string | null;
         };
         Relationships: [
           {
@@ -162,6 +180,32 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "order_items_order_id_fkey";
+            columns: ["order_id"];
+            isOneToOne: false;
+            referencedRelation: "orders";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      order_history: {
+        Row: OrderHistory;
+        Insert: {
+          order_id: string;
+          action: "created" | "edited" | "deleted" | "payment_updated";
+          reason?: string | null;
+          snapshot?: Json;
+          created_at?: string;
+        };
+        Update: {
+          order_id?: string;
+          action?: "created" | "edited" | "deleted" | "payment_updated";
+          reason?: string | null;
+          snapshot?: Json;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "order_history_order_id_fkey";
             columns: ["order_id"];
             isOneToOne: false;
             referencedRelation: "orders";

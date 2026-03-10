@@ -1,26 +1,27 @@
-import { DEPARTMENTS } from "@/lib/constants";
 import { getCustomers } from "@/lib/data";
 import { getTotalPages } from "@/lib/pagination";
 import { formatCurrency } from "@/lib/utils";
+import { CustomerFilters } from "@/components/customers/customer-filters";
 import { Avatar } from "@/components/ui/avatar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Pagination } from "@/components/ui/pagination";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export default async function CustomersPage({
   searchParams
 }: {
-  searchParams?: { page?: string; q?: string; department?: string; customerId?: string };
+  searchParams?: { page?: string; q?: string; department?: string; year?: string; customerId?: string };
 }) {
   const page = Number(searchParams?.page ?? "1");
   const search = searchParams?.q ?? "";
   const department = searchParams?.department ?? "ALL";
+  const year = searchParams?.year ?? "ALL";
   const selectedCustomerId = searchParams?.customerId;
   const { customers, total, history } = await getCustomers({
     page,
     search,
     department,
+    year,
     selectedCustomerId
   });
   const totalPages = getTotalPages(total, 10);
@@ -33,21 +34,7 @@ export default async function CustomersPage({
             <CardTitle>Customers</CardTitle>
             <CardDescription>Search repeat customers, filter by department, and open job history.</CardDescription>
           </div>
-          <form className="grid gap-3 sm:grid-cols-[1.4fr,0.8fr]">
-            <Input name="q" placeholder="Search customer name" defaultValue={search} />
-            <select
-              name="department"
-              defaultValue={department}
-              className="flex h-10 rounded-xl border border-input bg-background px-3 py-2 text-sm"
-            >
-              <option value="ALL">All departments</option>
-              {DEPARTMENTS.map((item) => (
-                <option key={item} value={item}>
-                  {item}
-                </option>
-              ))}
-            </select>
-          </form>
+          <CustomerFilters search={search} department={department} year={year} />
         </CardHeader>
         <CardContent className="space-y-6">
           {customers.length ? (
@@ -123,7 +110,7 @@ export default async function CustomersPage({
               No customers matched this filter yet.
             </div>
           )}
-          <Pagination basePath="/customers" page={page} totalPages={totalPages} query={{ q: search, department }} />
+          <Pagination basePath="/customers" page={page} totalPages={totalPages} query={{ q: search, department, year }} />
         </CardContent>
       </Card>
 
