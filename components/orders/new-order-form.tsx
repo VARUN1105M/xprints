@@ -69,6 +69,18 @@ function syncPricing(item: DraftItem): DraftItem {
   };
 }
 
+function getPricingBasisText(item: DraftItem, billableUnits: number) {
+  if (!isPrintingService(item.serviceType)) {
+    return `${billableUnits} billed item${billableUnits > 1 ? "s" : ""}`;
+  }
+
+  if (item.isDoubleSided) {
+    return `${item.pages} pages x ${item.copies} cop${item.copies > 1 ? "ies" : "y"} = ${billableUnits} billed sheet${billableUnits > 1 ? "s" : ""}`;
+  }
+
+  return `${item.pages} pages x ${item.copies} cop${item.copies > 1 ? "ies" : "y"} = ${billableUnits} billed page${billableUnits > 1 ? "s" : ""}`;
+}
+
 function StepperField({
   label,
   value,
@@ -339,6 +351,7 @@ export function NewOrderForm({
             {items.map((item, index) => {
               const printing = isPrintingService(item.serviceType);
               const pricing = getPricingDetails(item.serviceType, item.copies, item.quantity, item.pages, item.isDoubleSided);
+              const pricingBasisText = getPricingBasisText(item, pricing.billableUnits);
 
               return (
                 <div key={`${item.serviceType}-${index}`} className="rounded-[1.75rem] border bg-muted/20 p-5">
@@ -400,6 +413,7 @@ export function NewOrderForm({
                       <p className="text-xs uppercase tracking-[0.24em] text-muted-foreground">Applied pricing</p>
                       <p className="mt-3 text-lg font-semibold">{pricing.pricingText}</p>
                       <p className="mt-2 text-sm text-muted-foreground">{pricing.summary}</p>
+                      <p className="mt-2 text-sm text-muted-foreground">{pricingBasisText}</p>
                     </div>
 
                     {printing ? (

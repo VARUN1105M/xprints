@@ -3,36 +3,36 @@ import { FIXED_SERVICE_PRICING, PRINTING_SERVICES, SERVICE_CATEGORY_MAP, SERVICE
 export type ServiceType = (typeof SERVICE_TYPES)[number];
 
 export type Slab = {
-  max: number;
+  min: number;
   rate: number;
 };
 
 export const BW_SINGLE_SIDE_SLABS: Slab[] = [
-  { max: 10, rate: 2 },
-  { max: 50, rate: 1.5 },
-  { max: 100, rate: 1.25 },
-  { max: Number.POSITIVE_INFINITY, rate: 1 }
+  { min: 1, rate: 2 },
+  { min: 10, rate: 1.5 },
+  { min: 50, rate: 1.25 },
+  { min: 100, rate: 1 }
 ];
 
 export const BW_DOUBLE_SIDE_SLABS: Slab[] = [
-  { max: 10, rate: 3 },
-  { max: 50, rate: 2.5 },
-  { max: 100, rate: 2 },
-  { max: Number.POSITIVE_INFINITY, rate: 1.8 }
+  { min: 1, rate: 3 },
+  { min: 10, rate: 2.5 },
+  { min: 50, rate: 2 },
+  { min: 100, rate: 1.8 }
 ];
 
 export const COLOR_SINGLE_SIDE_SLABS: Slab[] = [
-  { max: 10, rate: 10 },
-  { max: 50, rate: 8 },
-  { max: 100, rate: 6 },
-  { max: Number.POSITIVE_INFINITY, rate: 5 }
+  { min: 1, rate: 10 },
+  { min: 10, rate: 8 },
+  { min: 50, rate: 6 },
+  { min: 100, rate: 5 }
 ];
 
 export const COLOR_DOUBLE_SIDE_SLABS: Slab[] = [
-  { max: 10, rate: 15 },
-  { max: 50, rate: 12 },
-  { max: 100, rate: 10 },
-  { max: Number.POSITIVE_INFINITY, rate: 8 }
+  { min: 1, rate: 15 },
+  { min: 10, rate: 12 },
+  { min: 50, rate: 10 },
+  { min: 100, rate: 8 }
 ];
 
 export type PricingDetails = {
@@ -85,7 +85,14 @@ export function calculateTotalFromRate(
 
 function getSlabRate(slabs: Slab[], units: number) {
   const safeUnits = Math.max(units, 1);
-  return slabs.find((slab) => safeUnits <= slab.max)?.rate ?? slabs[slabs.length - 1]?.rate ?? 0;
+
+  for (let index = slabs.length - 1; index >= 0; index -= 1) {
+    if (safeUnits >= slabs[index].min) {
+      return slabs[index].rate;
+    }
+  }
+
+  return slabs[0]?.rate ?? 0;
 }
 
 function isColorService(serviceType: ServiceType) {

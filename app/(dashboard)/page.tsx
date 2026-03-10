@@ -19,16 +19,11 @@ function formatRate(rate: number) {
 }
 
 function buildSlabRows(slabs: Slab[], unitLabel: "page" | "sheet") {
-  let previousMax = 0;
-
-  return slabs.map((slab) => {
-    const slabLabel = Number.isFinite(slab.max)
-      ? `${previousMax + 1}-${slab.max} ${unitLabel}${slab.max > 1 ? "s" : ""}`
-      : `${previousMax}+ ${unitLabel}${previousMax === 1 ? "" : "s"}`;
-
-    if (Number.isFinite(slab.max)) {
-      previousMax = slab.max;
-    }
+  return slabs.map((slab, index) => {
+    const nextSlab = slabs[index + 1];
+    const slabLabel = nextSlab
+      ? `${slab.min}-${nextSlab.min} ${unitLabel}${nextSlab.min > 1 ? "s" : ""}`
+      : `${slab.min}+ ${unitLabel}${slab.min === 1 ? "" : "s"}`;
 
     return {
       slab: slabLabel,
