@@ -1,6 +1,12 @@
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 
+type SupabaseCookie = {
+  name: string;
+  value: string;
+  options?: Record<string, unknown>;
+};
+
 export async function createSupabaseServerClient() {
   const cookieStore = cookies();
 
@@ -9,14 +15,18 @@ export async function createSupabaseServerClient() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value;
+        getAll() {
+          return cookieStore.getAll();
         },
-        set(name: string, value: string, options: Parameters<typeof cookieStore.set>[0]) {
-          (cookieStore as any).set(name, value, options);
-        },
-        remove(name: string, options: Parameters<typeof cookieStore.set>[0]) {
-          (cookieStore as any).set(name, "", options);
+        setAll(cookiesToSet: SupabaseCookie[]) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              (cookieStore as any).set(name, value, options);
+            });
+          } catch {
+            // Server Components can read cookies but may reject writes.
+            // Middleware refreshes auth cookies for subsequent requests.
+          }
         }
       }
     }
