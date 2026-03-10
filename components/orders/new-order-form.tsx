@@ -118,7 +118,7 @@ export function NewOrderForm({
   const [department, setDepartment] = useState<(typeof DEPARTMENTS)[number]>(initialOrder?.department ?? "IT");
   const [year, setYear] = useState<(typeof YEARS)[number]>(initialOrder?.year ?? "I");
   const [section, setSection] = useState<(typeof SECTIONS)[number]>(initialOrder?.section ?? "A");
-  const [paymentStatus, setPaymentStatus] = useState<"paid" | "pending">(initialOrder?.paymentStatus ?? "paid");
+  const [paymentStatus, setPaymentStatus] = useState<"paid" | "pending">(initialOrder?.paymentStatus ?? "pending");
   const [items, setItems] = useState<DraftItem[]>(initialOrder?.items?.length ? initialOrder.items.map(syncPricing) : [createItem()]);
   const [suggestions, setSuggestions] = useState<Customer[]>([]);
   const [matchedCustomer, setMatchedCustomer] = useState<Customer | null>(null);

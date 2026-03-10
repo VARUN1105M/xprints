@@ -24,7 +24,7 @@ function buildSlabRows(slabs: Slab[], unitLabel: "page" | "sheet") {
   return slabs.map((slab) => {
     const slabLabel = Number.isFinite(slab.max)
       ? `${previousMax + 1}-${slab.max} ${unitLabel}${slab.max > 1 ? "s" : ""}`
-      : `Above ${previousMax} ${unitLabel}${previousMax === 1 ? "" : "s"}`;
+      : `${previousMax}+ ${unitLabel}${previousMax === 1 ? "" : "s"}`;
 
     if (Number.isFinite(slab.max)) {
       previousMax = slab.max;

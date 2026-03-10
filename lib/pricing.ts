@@ -8,31 +8,31 @@ export type Slab = {
 };
 
 export const BW_SINGLE_SIDE_SLABS: Slab[] = [
-  { max: 5, rate: 2 },
-  { max: 25, rate: 1.5 },
+  { max: 10, rate: 2 },
+  { max: 50, rate: 1.5 },
   { max: 100, rate: 1.25 },
   { max: Number.POSITIVE_INFINITY, rate: 1 }
 ];
 
 export const BW_DOUBLE_SIDE_SLABS: Slab[] = [
-  { max: 5, rate: 3 },
-  { max: 25, rate: 2.5 },
+  { max: 10, rate: 3 },
+  { max: 50, rate: 2.5 },
   { max: 100, rate: 2 },
   { max: Number.POSITIVE_INFINITY, rate: 1.8 }
 ];
 
 export const COLOR_SINGLE_SIDE_SLABS: Slab[] = [
-  { max: 5, rate: 20 },
-  { max: 25, rate: 15 },
-  { max: 100, rate: 12 },
-  { max: Number.POSITIVE_INFINITY, rate: 10 }
+  { max: 10, rate: 10 },
+  { max: 50, rate: 8 },
+  { max: 100, rate: 6 },
+  { max: Number.POSITIVE_INFINITY, rate: 5 }
 ];
 
 export const COLOR_DOUBLE_SIDE_SLABS: Slab[] = [
-  { max: 5, rate: 35 },
-  { max: 25, rate: 30 },
-  { max: 100, rate: 25 },
-  { max: Number.POSITIVE_INFINITY, rate: 20 }
+  { max: 10, rate: 15 },
+  { max: 50, rate: 12 },
+  { max: 100, rate: 10 },
+  { max: Number.POSITIVE_INFINITY, rate: 8 }
 ];
 
 export type PricingDetails = {
