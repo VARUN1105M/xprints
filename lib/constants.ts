@@ -1,4 +1,4 @@
-import { BookOpenText, ClipboardList, Layers3, Package2, ReceiptIndianRupee, Users2 } from "lucide-react";
+import { BookOpenText, ClipboardList, Layers3, ReceiptIndianRupee, Users2 } from "lucide-react";
 
 export const DEPARTMENTS = [
   "IT",
@@ -31,22 +31,16 @@ export const SERVICE_CATEGORY_MAP: Record<(typeof SERVICE_TYPES)[number], "print
   "Report Rework": "other"
 };
 
-export const DEFAULT_SERVICE_PRICING: Record<(typeof SERVICE_TYPES)[number], number> = {
-  "B&W Print": 2,
-  "Color Print": 10,
-  "Front Page": 15,
-  "Record Print": 5,
-  Binding: 35,
-  "Report Printing": 80,
-  "Report Rework": 50
-};
+export const FIXED_SERVICE_PRICING = {
+  Binding: 20,
+  "Report Printing": 60,
+  "Report Rework": 30
+} as const;
 
 export const SIDEBAR_LINKS = [
-  { href: "/", label: "Dashboard", icon: Layers3 },
-  { href: "/orders", label: "Orders", icon: ClipboardList },
   { href: "/orders/new", label: "New Order", icon: ReceiptIndianRupee },
+  { href: "/orders", label: "Orders", icon: ClipboardList },
   { href: "/customers", label: "Customers", icon: Users2 },
   { href: "/unpaid", label: "Unpaid Jobs", icon: BookOpenText },
-  { href: "/reports", label: "Reports", icon: ReceiptIndianRupee },
-  { href: "/inventory", label: "Inventory", icon: Package2 }
+  { href: "/", label: "Pricing", icon: Layers3 }
 ] as const;
