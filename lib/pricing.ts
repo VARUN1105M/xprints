@@ -4,40 +4,42 @@ export type ServiceType = (typeof SERVICE_TYPES)[number];
 
 export type Slab = {
   min: number;
+  max?: number;
   rate: number;
 };
 
 export const BW_SINGLE_SIDE_SLABS: Slab[] = [
-  { min: 1, rate: 2 },
-  { min: 10, rate: 1.5 },
-  { min: 50, rate: 1.25 },
-  { min: 100, rate: 1 }
+  { min: 1, max: 10, rate: 2 },
+  { min: 11, max: 50, rate: 1.5 },
+  { min: 51, max: 100, rate: 1.25 },
+  { min: 101, rate: 1.15 }
 ];
 
 export const BW_DOUBLE_SIDE_SLABS: Slab[] = [
-  { min: 1, rate: 3 },
-  { min: 10, rate: 2.5 },
-  { min: 50, rate: 2 },
-  { min: 100, rate: 1.8 }
+  { min: 1, max: 10, rate: 2.5 },
+  { min: 11, max: 50, rate: 2.25 },
+  { min: 51, max: 100, rate: 2 },
+  { min: 101, rate: 1.8 }
 ];
 
 export const COLOR_SINGLE_SIDE_SLABS: Slab[] = [
-  { min: 1, rate: 10 },
-  { min: 10, rate: 8 },
-  { min: 50, rate: 6 },
-  { min: 100, rate: 5 }
+  { min: 1, max: 10, rate: 10 },
+  { min: 11, max: 50, rate: 8 },
+  { min: 51, max: 100, rate: 6 },
+  { min: 101, rate: 5 }
 ];
 
 export const COLOR_DOUBLE_SIDE_SLABS: Slab[] = [
-  { min: 1, rate: 15 },
-  { min: 10, rate: 12 },
-  { min: 50, rate: 10 },
-  { min: 100, rate: 8 }
+  { min: 1, max: 10, rate: 15 },
+  { min: 11, max: 50, rate: 12 },
+  { min: 51, max: 100, rate: 10 },
+  { min: 101, rate: 8 }
 ];
 
 export type PricingDetails = {
   unitRate: number;
   billableUnits: number;
+  rangeUnits: number;
   total: number;
   unitLabel: string;
   pricingText: string;
@@ -72,6 +74,21 @@ export function getBillableUnits(
   return Math.max(quantity, 1);
 }
 
+export function getPricingRangeUnits(
+  serviceType: ServiceType,
+  copies: number,
+  quantity: number,
+  pages = 1
+) {
+  const category = SERVICE_CATEGORY_MAP[serviceType];
+
+  if (category === "printing") {
+    return Math.max(pages, 0) * Math.max(copies, 0);
+  }
+
+  return Math.max(quantity, 1);
+}
+
 export function calculateTotalFromRate(
   serviceType: ServiceType,
   unitPrice: number,
@@ -86,13 +103,7 @@ export function calculateTotalFromRate(
 function getSlabRate(slabs: Slab[], units: number) {
   const safeUnits = Math.max(units, 1);
 
-  for (let index = slabs.length - 1; index >= 0; index -= 1) {
-    if (safeUnits >= slabs[index].min) {
-      return slabs[index].rate;
-    }
-  }
-
-  return slabs[0]?.rate ?? 0;
+  return slabs.find((slab) => safeUnits >= slab.min && (typeof slab.max === "undefined" || safeUnits <= slab.max))?.rate ?? slabs[0]?.rate ?? 0;
 }
 
 function isColorService(serviceType: ServiceType) {
@@ -111,6 +122,7 @@ export function getPricingDetails(
   isDoubleSided = false
 ): PricingDetails {
   const billableUnits = getBillableUnits(serviceType, copies, quantity, pages, isDoubleSided);
+  const rangeUnits = getPricingRangeUnits(serviceType, copies, quantity, pages);
 
   if (isBlackAndWhiteService(serviceType) || isColorService(serviceType)) {
     const slabs = isColorService(serviceType)
@@ -120,7 +132,7 @@ export function getPricingDetails(
       : isDoubleSided
         ? BW_DOUBLE_SIDE_SLABS
         : BW_SINGLE_SIDE_SLABS;
-    const unitRate = getSlabRate(slabs, billableUnits);
+    const unitRate = getSlabRate(slabs, rangeUnits);
     const total = Math.round(billableUnits * unitRate);
     const unitLabel = isDoubleSided ? "sheet" : "page";
     const sideLabel = isDoubleSided ? "double side" : "single side";
@@ -128,6 +140,7 @@ export function getPricingDetails(
     return {
       unitRate,
       billableUnits,
+      rangeUnits,
       total,
       unitLabel,
       pricingText: `Rs ${unitRate} / ${unitLabel}`,
@@ -140,6 +153,7 @@ export function getPricingDetails(
   return {
     unitRate,
     billableUnits,
+    rangeUnits,
     total: Math.round(billableUnits * unitRate),
     unitLabel: "item",
     pricingText: `Rs ${unitRate} / item`,

@@ -18,24 +18,24 @@ function formatRate(rate: number) {
   return Number.isInteger(rate) ? rate.toFixed(0) : rate.toFixed(2);
 }
 
-function buildSlabRows(slabs: Slab[], unitLabel: "page" | "sheet") {
-  return slabs.map((slab, index) => {
-    const nextSlab = slabs[index + 1];
-    const slabLabel = nextSlab
-      ? `${slab.min}-${nextSlab.min} ${unitLabel}${nextSlab.min > 1 ? "s" : ""}`
-      : `${slab.min}+ ${unitLabel}${slab.min === 1 ? "" : "s"}`;
+function buildSlabRows(slabs: Slab[], rangeUnitLabel: "page" | "sheet", priceUnitLabel: "page" | "sheet") {
+  return slabs.map((slab) => {
+    const slabLabel =
+      typeof slab.max === "number"
+        ? `${slab.min}-${slab.max} ${rangeUnitLabel}${slab.max > 1 ? "s" : ""}`
+        : `${slab.min}+ ${rangeUnitLabel}${slab.min === 1 ? "" : "s"}`;
 
     return {
       slab: slabLabel,
-      price: `Rs ${formatRate(slab.rate)} / ${unitLabel}`
+      price: `Rs ${formatRate(slab.rate)} / ${priceUnitLabel}`
     };
   });
 }
 
-const bwSingleSide = buildSlabRows(BW_SINGLE_SIDE_SLABS, "page");
-const bwDoubleSide = buildSlabRows(BW_DOUBLE_SIDE_SLABS, "sheet");
-const colorSingleSide = buildSlabRows(COLOR_SINGLE_SIDE_SLABS, "page");
-const colorDoubleSide = buildSlabRows(COLOR_DOUBLE_SIDE_SLABS, "sheet");
+const bwSingleSide = buildSlabRows(BW_SINGLE_SIDE_SLABS, "page", "page");
+const bwDoubleSide = buildSlabRows(BW_DOUBLE_SIDE_SLABS, "page", "sheet");
+const colorSingleSide = buildSlabRows(COLOR_SINGLE_SIDE_SLABS, "page", "page");
+const colorDoubleSide = buildSlabRows(COLOR_DOUBLE_SIDE_SLABS, "page", "sheet");
 
 const fixedServiceRows: PriceRow[] = [
   { slab: "Binding", price: `Rs ${FIXED_SERVICE_PRICING.Binding} / item` },
@@ -72,7 +72,7 @@ export default function PricingPage() {
       <Card>
         <CardHeader>
           <CardTitle>Black &amp; white double side</CardTitle>
-          <CardDescription>Per-sheet duplex pricing.</CardDescription>
+          <CardDescription>Rate is chosen by total pages and charged per sheet.</CardDescription>
         </CardHeader>
         <CardContent>
           <PricingTable rows={bwDoubleSide} />
@@ -82,7 +82,7 @@ export default function PricingPage() {
       <Card className="xl:col-span-2">
         <CardHeader>
           <CardTitle>Color printing</CardTitle>
-          <CardDescription>Single and double side color rates for Color Print and Front Page.</CardDescription>
+          <CardDescription>Single-side is per page; double-side rate is chosen by total pages and charged per sheet.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-6 lg:grid-cols-2">
           <div className="space-y-3">

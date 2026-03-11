@@ -75,7 +75,8 @@ function getPricingBasisText(item: DraftItem, billableUnits: number) {
   }
 
   if (item.isDoubleSided) {
-    return `${item.pages} pages x ${item.copies} cop${item.copies > 1 ? "ies" : "y"} = ${billableUnits} billed sheet${billableUnits > 1 ? "s" : ""}`;
+    const rangeUnits = item.pages * item.copies;
+    return `${rangeUnits} total pages set the rate; ${billableUnits} billed sheet${billableUnits > 1 ? "s" : ""}`;
   }
 
   return `${item.pages} pages x ${item.copies} cop${item.copies > 1 ? "ies" : "y"} = ${billableUnits} billed page${billableUnits > 1 ? "s" : ""}`;
