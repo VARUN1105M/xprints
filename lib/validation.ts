@@ -56,7 +56,8 @@ export const deleteOrderSchema = z.object({
 export const paymentUpdateSchema = z.object({
   orderId: z.string().uuid(),
   amount: z.number().min(0),
-  paymentMethod: z.enum(["cash", "upi", "card", "credit"])
+  paymentMethod: z.enum(["cash", "upi", "card", "credit"]),
+  reason: z.string().trim().optional()
 });
 
 export const inventoryAdjustmentSchema = z.object({

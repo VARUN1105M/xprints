@@ -4,7 +4,7 @@ import { getTotalPages } from "@/lib/pagination";
 import { formatCurrency } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { OrderFilters } from "@/components/orders/order-filters";
 import { Pagination } from "@/components/ui/pagination";
 import { DeleteOrderForm } from "@/components/orders/delete-order-form";
 
@@ -27,14 +27,7 @@ export default async function OrdersPage({
             <CardTitle>Orders</CardTitle>
             <CardDescription>Detailed order view with payment state, service breakdown, edit controls, and delete reasons.</CardDescription>
           </div>
-          <form className="grid gap-3 sm:grid-cols-[1.4fr,0.8fr]">
-            <Input name="q" placeholder="Search order id, customer, service, department" defaultValue={search} />
-            <select name="status" defaultValue={status} className="flex h-10 rounded-xl border border-input bg-background px-3 py-2 text-sm">
-              <option value="ALL">All statuses</option>
-              <option value="paid">Paid</option>
-              <option value="pending">Pending</option>
-            </select>
-          </form>
+          <OrderFilters search={search} status={status} />
         </CardHeader>
         <CardContent className="space-y-6">
           {orders.length ? (

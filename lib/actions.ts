@@ -513,6 +513,7 @@ export async function markPaymentReceivedAction(payload: {
   orderId: string;
   amount: number;
   paymentMethod: "cash" | "upi" | "card" | "credit";
+  reason?: string;
 }) {
   const validated = paymentUpdateSchema.parse({
     ...payload,
@@ -520,6 +521,13 @@ export async function markPaymentReceivedAction(payload: {
   });
   const supabase = await createSupabaseServerClient();
   const previousSnapshot = await getOrderSnapshot(supabase, validated.orderId);
+  const expectedAmount = Number((previousSnapshot as { total_price?: number } | null)?.total_price ?? 0);
+  const amountChanged = Math.abs(validated.amount - expectedAmount) > 0.009;
+  const reason = validated.reason?.trim() ?? "";
+
+  if (amountChanged && reason.length < 2) {
+    return { error: "Please add a short reason when the paid amount is different from the due amount." };
+  }
 
   let { error: orderError } = await supabase
     .from("orders")
@@ -550,7 +558,9 @@ export async function markPaymentReceivedAction(payload: {
   const historyResult = await insertOrderHistory(supabase, {
     orderId: validated.orderId,
     action: "payment_updated",
-    reason: `Marked paid via ${validated.paymentMethod}`,
+    reason: amountChanged
+      ? `Marked paid via ${validated.paymentMethod}. Amount changed from ${expectedAmount} to ${validated.amount}. Reason: ${reason}`
+      : `Marked paid via ${validated.paymentMethod}`,
     snapshot: previousSnapshot
   });
 
